@@ -12,17 +12,22 @@ export const useWeatherStore = defineStore('weather', () => {
   const selectedCityForecast = ref<ForecastResponse | null>(null);
 
   async function loadCity(cityName: string) {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      const data = await fetchCurrentWeather(cityName);
-      cities.value.push(data);
-    } catch (err) {
-      error.value = `Could not find weather for ${cityName}`;
-    } finally {
-      isLoading.value = false;
-    }
+  const alreadyExists = cities.value.some(
+    (c) => c.name.toLowerCase() === cityName.toLowerCase()
+  );
+  if (alreadyExists) return;
+
+  isLoading.value = true;
+  error.value = null;
+  try {
+    const data = await fetchCurrentWeather(cityName);
+    cities.value.push(data);
+  } catch (err) {
+    error.value = `Could not find weather for ${cityName}`;
+  } finally {
+    isLoading.value = false;
   }
+}
 
   async function loadCityDetail(cityName: string) {
     isLoading.value = true;

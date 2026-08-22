@@ -2,6 +2,7 @@
 import { onMounted } from 'vue';
 import { useWeatherStore } from '../../stores/weatherStore';
 import CityList from '../organisms/CityList.vue';
+import SearchBar from '../molecules/SearchBar.vue';
 
 const store = useWeatherStore();
 
@@ -9,6 +10,10 @@ onMounted(() => {
   store.loadCity('London');
   store.loadCity('Milan');
 });
+
+function handleSearch(city: string) {
+  store.loadCity(city);
+}
 </script>
 
 <template>
@@ -16,6 +21,8 @@ onMounted(() => {
     <header class="home-page__header">
       <h1>Weather</h1>
     </header>
+
+    <SearchBar @search="handleSearch" />
 
     <div v-if="store.isLoading" class="loading-state">
       <div class="spinner"></div>
