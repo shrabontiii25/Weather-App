@@ -1,5 +1,58 @@
-# Vue 3 + TypeScript + Vite
+# Weather App
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+A responsive single-page weather application built with Vue 3, TypeScript, and the OpenWeatherMap API. Built as a technical assessment.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## Features
+
+- Search for any city and view current weather
+- City list with live temperature, condition, and high/low
+- Detail view per city with hourly and weekly forecast
+- Loading and error states throughout
+- Form validation on search (prevents empty submissions, prevents duplicate cities)
+- Client-side routing between home and detail views
+
+## Tech Stack
+
+- **Vue 3** (Composition API, `<script setup>`)
+- **TypeScript** (strict typing throughout, interfaces modeling the API response)
+- **Vite** — build tool and dev server
+- **Pinia** — state management
+- **Vue Router** — navigation between views
+- **OpenWeatherMap API** — weather data source
+
+## Architecture
+
+Components are organized following **Atomic Design**:
+
+- `atoms/` — smallest reusable pieces (TempDisplay, WeatherIcon, SearchInput)
+- `molecules/` — combinations of atoms (CityCard, SearchBar)
+- `organisms/` — larger reusable sections (CityList)
+- `pages/` — full assembled views (HomePage, DetailPage)
+
+Data flow: the **API service layer** (`services/weatherApi.ts`) fetches and types responses. The **Pinia store** (`stores/weatherStore.ts`) holds shared state (city list, selected city, loading/error flags) as a single source of truth. Components read reactively from the store rather than fetching independently.
+
+## Setup and Installation
+
+1. Clone the repository
+2. Run `npm install`
+3. Create a `.env` file in the project root with:
+   VITE_WEATHER_API_KEY=your_openweathermap_api_key
+4. Run `npm run dev`
+5. Open `http://localhost:5173`
+
+## Approach and Decisions
+
+- Chose **Pinia** over Vuex, as it's the modern, officially recommended successor and integrates more naturally with the Composition API.
+- The free OpenWeatherMap tier provides 3-hour interval forecasts rather than a true daily forecast, so the weekly forecast is derived by taking the first entry per unique date from the 5-day list.
+- Given the project's time constraints, I prioritized core functionality (search, city list, detail view, real API integration, state management, routing) over exhaustive accessibility/performance optimization. These are documented below as next steps.
+
+## Running Tests
+
+No automated test suite is included at this time due to project time constraints. Manual testing was performed for: search validation, duplicate city prevention, navigation between views, and error states (e.g. invalid API key, invalid city name).
+
+## Next Steps (given more time)
+
+- Add a Web API integration (Geolocation) to auto-detect the user's local weather
+- Expand automated test coverage (unit tests for the store and API service)
+- Deeper accessibility audit (keyboard navigation, ARIA labels, contrast)
+- Additional performance optimizations (lazy-loaded routes, image optimization)
