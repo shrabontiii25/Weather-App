@@ -38,7 +38,7 @@ function handleSearch(city: string) {
 
     <p v-if="store.error" class="error-state">{{ store.error }}</p>
 
-    <CityList :cities="store.cities" />
+    <CityList :cities="store.cities" :myLocationName="store.myLocationName ?? undefined" />
   </main>
 </template>
 

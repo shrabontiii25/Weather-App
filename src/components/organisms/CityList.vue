@@ -4,6 +4,7 @@ import type { CurrentWeather } from '../../types/weather.types';
 
 defineProps<{
   cities: CurrentWeather[];
+  myLocationName?: string;
 }>();
 </script>
 
@@ -15,13 +16,15 @@ defineProps<{
       :to="`/city/${city.name}`"
       class="city-list__link"
     >
-      <CityCard
+            <CityCard
         :cityName="city.name"
         :subtitle="city.sys.country"
         :temp="city.main.temp"
         :condition="city.weather[0].description"
+        :conditionMain="city.weather[0].main"
         :high="city.main.temp_max"
         :low="city.main.temp_min"
+        :isCurrentLocation="city.name === myLocationName"
       />
     </router-link>
   </div>
