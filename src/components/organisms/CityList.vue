@@ -9,16 +9,21 @@ defineProps<{
 
 <template>
   <div class="city-list">
-    <CityCard
+    <router-link
       v-for="city in cities"
       :key="city.name"
-      :cityName="city.name"
-      :subtitle="city.sys.country"
-      :temp="city.main.temp"
-      :condition="city.weather[0].description"
-      :high="city.main.temp_max"
-      :low="city.main.temp_min"
-    />
+      :to="`/city/${city.name}`"
+      class="city-list__link"
+    >
+      <CityCard
+        :cityName="city.name"
+        :subtitle="city.sys.country"
+        :temp="city.main.temp"
+        :condition="city.weather[0].description"
+        :high="city.main.temp_max"
+        :low="city.main.temp_min"
+      />
+    </router-link>
   </div>
 </template>
 
@@ -27,5 +32,11 @@ defineProps<{
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.city-list__link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
 }
 </style>
