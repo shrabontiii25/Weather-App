@@ -78,30 +78,45 @@ const dailyForecast = computed(() => {
 
 <style scoped>
 .detail-page {
-  padding: 2rem;
+  min-height: 100vh;
+  padding: 1.5rem;
   max-width: 400px;
   margin: 0 auto;
+  background: linear-gradient(160deg, #4a7fd4, #2a4d8f);
+  color: white;
+  border-radius: 24px;
 }
 
 .detail-page__back {
   display: inline-block;
   margin-bottom: 1rem;
-  color: #4a6fa5;
+  color: white;
   text-decoration: none;
+  opacity: 0.9;
 }
 
 .detail-page__current {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .forecast-section {
-  margin-bottom: 1.5rem;
+  background: white;
+  color: #333;
+  border-radius: 20px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.forecast-section h2 {
+  font-size: 1rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
 }
 
 .forecast-row {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.6rem;
   overflow-x: auto;
 }
 
@@ -109,17 +124,18 @@ const dailyForecast = computed(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #f0f4f8;
-  border-radius: 12px;
-  padding: 0.75rem;
-  min-width: 70px;
+  background: linear-gradient(160deg, #4a7fd4, #2a4d8f);
+  color: white;
+  border-radius: 16px;
+  padding: 0.75rem 0.5rem;
+  min-width: 65px;
 }
 
 .forecast-day-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0;
+  padding: 0.6rem 0;
   border-bottom: 1px solid #eee;
 }
 
@@ -129,14 +145,13 @@ const dailyForecast = computed(() => {
   align-items: center;
   gap: 0.75rem;
   padding: 2rem 0;
-  color: #666;
 }
 
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #ddd;
-  border-top-color: #4a6fa5;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top-color: white;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -146,7 +161,7 @@ const dailyForecast = computed(() => {
 }
 
 .error-state {
-  color: #c0392b;
+  color: #ffd6d6;
   text-align: center;
   padding: 1rem;
 }
