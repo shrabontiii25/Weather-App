@@ -13,7 +13,15 @@
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --display: 'Baloo 2', var(--heading);
   --mono: ui-monospace, Consolas, monospace;
+
+  --weather-clear: linear-gradient(160deg, #ff9a44 0%, #e6483c 100%);
+  --weather-clouds: linear-gradient(160deg, #5b86d9 0%, #2e4b9e 100%);
+  --weather-rain: linear-gradient(160deg, #4a7fd4 0%, #1b3a63 100%);
+  --weather-thunder: linear-gradient(160deg, #5a4aa0 0%, #1d1147 100%);
+  --weather-snow: linear-gradient(160deg, #8fc1e8 0%, #3e6b9e 100%);
+  --weather-mist: linear-gradient(160deg, #8a9ba8 0%, #4e5c66 100%);
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
