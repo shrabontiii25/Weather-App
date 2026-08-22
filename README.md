@@ -10,6 +10,7 @@ A responsive single-page weather application built with Vue 3, TypeScript, and t
 - Loading and error states throughout
 - Form validation on search (prevents empty submissions, prevents duplicate cities)
 - Client-side routing between home and detail views
+- Auto-detects user's current location weather using the browser's Geolocation API
 
 ## Tech Stack
 
@@ -45,6 +46,7 @@ Data flow: the **API service layer** (`services/weatherApi.ts`) fetches and type
 - Chose **Pinia** over Vuex, as it's the modern, officially recommended successor and integrates more naturally with the Composition API.
 - The free OpenWeatherMap tier provides 3-hour interval forecasts rather than a true daily forecast, so the weekly forecast is derived by taking the first entry per unique date from the 5-day list.
 - Given the project's time constraints, I prioritized core functionality (search, city list, detail view, real API integration, state management, routing) over exhaustive accessibility/performance optimization. These are documented below as next steps.
+- Used the browser's native **Geolocation API** to detect the user's location and show local weather first in the list, degrading gracefully with an error message if permission is denied or unavailable.
 
 ## Running Tests
 
@@ -52,7 +54,6 @@ No automated test suite is included at this time due to project time constraints
 
 ## Next Steps (given more time)
 
-- Add a Web API integration (Geolocation) to auto-detect the user's local weather
 - Expand automated test coverage (unit tests for the store and API service)
 - Deeper accessibility audit (keyboard navigation, ARIA labels, contrast)
 - Additional performance optimizations (lazy-loaded routes, image optimization)
