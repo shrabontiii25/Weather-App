@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import heroIcon from '../../assets/hero.png';
-
 const props = withDefaults(
   defineProps<{
     iconCode: string;
@@ -10,34 +8,43 @@ const props = withDefaults(
   { size: 'small' }
 );
 
-const iconMap: Record<string, string> = {
-  '01d': 'clear-day', '01n': 'clear-night',
-  '02d': 'partly-cloudy-day', '02n': 'partly-cloudy-night',
-  '03d': 'cloudy', '03n': 'cloudy',
-  '04d': 'overcast', '04n': 'overcast',
-  '09d': 'drizzle', '09n': 'drizzle',
-  '10d': 'rain', '10n': 'rain',
-  '11d': 'thunderstorms-day-rain', '11n': 'thunderstorms-night-rain',
-  '13d': 'snow', '13n': 'snow',
-  '50d': 'fog-day', '50n': 'fog-night',
+const fluentPathMap: Record<string, string> = {
+  '01d': 'Sun/3D/sun_3d.png',
+  '01n': 'Crescent moon/3D/crescent_moon_3d.png',
+  '02d': 'Sun behind cloud/3D/sun_behind_cloud_3d.png',
+  '02n': 'Cloud/3D/cloud_3d.png',
+  '03d': 'Cloud/3D/cloud_3d.png',
+  '03n': 'Cloud/3D/cloud_3d.png',
+  '04d': 'Sun behind large cloud/3D/sun_behind_large_cloud_3d.png',
+  '04n': 'Cloud/3D/cloud_3d.png',
+  '09d': 'Cloud with rain/3D/cloud_with_rain_3d.png',
+  '09n': 'Cloud with rain/3D/cloud_with_rain_3d.png',
+  '10d': 'Cloud with rain/3D/cloud_with_rain_3d.png',
+  '10n': 'Cloud with rain/3D/cloud_with_rain_3d.png',
+  '11d': 'Cloud with lightning and rain/3D/cloud_with_lightning_and_rain_3d.png',
+  '11n': 'Cloud with lightning and rain/3D/cloud_with_lightning_and_rain_3d.png',
+  '13d': 'Snowflake/3D/snowflake_3d.png',
+  '13n': 'Snowflake/3D/snowflake_3d.png',
+  '50d': 'Fog/3D/fog_3d.png',
+  '50n': 'Fog/3D/fog_3d.png',
 };
 
-// hero.png (your hand-composited sun+cloud illustration) replaces the
-// default partly-cloudy icon only in the large detail-page hero slot.
-const usesHeroArt = props.size === 'large' && (props.iconCode === '02d' || props.iconCode === '02n');
-
-const meteoconIcon = iconMap[props.iconCode] ?? 'not-available';
-const iconUrl = usesHeroArt
-  ? heroIcon
-  : `https://cdn.meteocons.com/3.0.0-next.10/svg/fill/${meteoconIcon}.svg`;
+const relPath = fluentPathMap[props.iconCode] ?? 'Cloud/3D/cloud_3d.png';
+const iconUrl = `https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/${encodeURI(relPath)}`;
 </script>
 
 <template>
-  <img :src="iconUrl" :alt="description" class="weather-icon" :class="[`weather-icon--${size}`]" />
+  <img
+    :src="iconUrl"
+    :alt="description"
+    class="weather-icon"
+    :class="[`weather-icon--${size}`]"
+    :loading="size === 'small' ? 'lazy' : 'eager'"
+  />
 </template>
 
 <style scoped>
-.weather-icon--small { width: 70px; height: 70px; }
-.weather-icon--medium { width: 92px; height: 92px; }
-.weather-icon--large { width: 140px; height: 140px; }
+.weather-icon--small { width: 56px; height: 56px; }
+.weather-icon--medium { width: 80px; height: 80px; }
+.weather-icon--large { width: 160px; height: 160px; }
 </style>
