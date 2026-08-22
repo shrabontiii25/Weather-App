@@ -7,6 +7,7 @@ import SearchBar from '../molecules/SearchBar.vue';
 const store = useWeatherStore();
 
 onMounted(() => {
+  store.loadMyLocation();
   store.loadCity('London');
   store.loadCity('Milan');
 });

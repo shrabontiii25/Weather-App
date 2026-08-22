@@ -29,4 +29,17 @@ export async function fetchForecast(city: string): Promise<ForecastResponse> {
   return data;
 }
 
+export async function fetchWeatherByCoords(lat: number, lon: number): Promise<CurrentWeather> {
+  const response = await fetch(
+    `${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch weather for your location');
+  }
+
+  const data: CurrentWeather = await response.json();
+  return data;
+}
+
 
