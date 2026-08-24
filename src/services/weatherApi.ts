@@ -55,4 +55,25 @@ export async function fetchForecastByCoords(lat: number, lon: number): Promise<F
   return data;
 }
 
+export interface CitySuggestion {
+  name: string;
+  country: string;
+  state?: string;
+  lat: number;
+  lon: number;
+}
 
+export async function fetchCitySuggestions(query: string): Promise<CitySuggestion[]> {
+  if (!query.trim()) return [];
+
+  const response = await fetch(
+    `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=5&appid=${API_KEY}`
+  );
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const data: CitySuggestion[] = await response.json();
+  return data;
+}
