@@ -22,6 +22,7 @@ export interface CurrentWeather {
     speed: number;
   };
   dt: number;
+  timezone: number;
   sys: {
     country: string;
   };

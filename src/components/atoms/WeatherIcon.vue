@@ -1,50 +1,44 @@
 <script setup lang="ts">
-const props = withDefaults(
-  defineProps<{
-    iconCode: string;
-    description: string;
-    size?: 'small' | 'medium' | 'large';
-  }>(),
-  { size: 'small' }
-);
+import cloudy from '../../assets/weather-icons/Icon=Cloudy.svg';
+import lightDrizzle from '../../assets/weather-icons/Icon=Light Drizzle.svg';
+import lightning from '../../assets/weather-icons/Icon=Lightning.svg';
+import night from '../../assets/weather-icons/Icon=Night.svg';
+import partlyCloudy from '../../assets/weather-icons/Icon=Partly Cloudy.svg';
+import rainyWithSun from '../../assets/weather-icons/Icon=Rainy with Sun.svg';
+import rainy from '../../assets/weather-icons/Icon=Rainy.svg';
+import sleet from '../../assets/weather-icons/Icon=Sleet.svg';
+import snow from '../../assets/weather-icons/Icon=Snow.svg';
+import snowfall from '../../assets/weather-icons/Icon=Snowfall.svg';
+import sunny from '../../assets/weather-icons/Icon=Sunny.svg';
+import thunderstorm from '../../assets/weather-icons/Icon=Thunderstorm.svg';
 
-const fluentPathMap: Record<string, string> = {
-  '01d': 'Sun/3D/sun_3d.png',
-  '01n': 'Crescent moon/3D/crescent_moon_3d.png',
-  '02d': 'Sun behind cloud/3D/sun_behind_cloud_3d.png',
-  '02n': 'Cloud/3D/cloud_3d.png',
-  '03d': 'Cloud/3D/cloud_3d.png',
-  '03n': 'Cloud/3D/cloud_3d.png',
-  '04d': 'Sun behind large cloud/3D/sun_behind_large_cloud_3d.png',
-  '04n': 'Cloud/3D/cloud_3d.png',
-  '09d': 'Cloud with rain/3D/cloud_with_rain_3d.png',
-  '09n': 'Cloud with rain/3D/cloud_with_rain_3d.png',
-  '10d': 'Cloud with rain/3D/cloud_with_rain_3d.png',
-  '10n': 'Cloud with rain/3D/cloud_with_rain_3d.png',
-  '11d': 'Cloud with lightning and rain/3D/cloud_with_lightning_and_rain_3d.png',
-  '11n': 'Cloud with lightning and rain/3D/cloud_with_lightning_and_rain_3d.png',
-  '13d': 'Snowflake/3D/snowflake_3d.png',
-  '13n': 'Snowflake/3D/snowflake_3d.png',
-  '50d': 'Fog/3D/fog_3d.png',
-  '50n': 'Fog/3D/fog_3d.png',
+const props = defineProps<{
+  iconCode: string;
+  description: string;
+}>();
+
+const iconMap: Record<string, string> = {
+  '01d': sunny, '01n': night,
+  '02d': partlyCloudy, '02n': partlyCloudy,
+  '03d': cloudy, '03n': cloudy,
+  '04d': cloudy, '04n': cloudy,
+  '09d': lightDrizzle, '09n': lightDrizzle,
+  '10d': rainyWithSun, '10n': rainy,
+  '11d': thunderstorm, '11n': thunderstorm,
+  '13d': snow, '13n': snowfall,
+  '50d': cloudy, '50n': cloudy,
 };
 
-const relPath = fluentPathMap[props.iconCode] ?? 'Cloud/3D/cloud_3d.png';
-const iconUrl = `https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/${encodeURI(relPath)}`;
+const iconSrc = iconMap[props.iconCode] ?? sunny;
 </script>
 
 <template>
-  <img
-    :src="iconUrl"
-    :alt="description"
-    class="weather-icon"
-    :class="[`weather-icon--${size}`]"
-    :loading="size === 'small' ? 'lazy' : 'eager'"
-  />
+  <img :src="iconSrc" :alt="description" class="weather-icon" />
 </template>
 
 <style scoped>
-.weather-icon--small { width: 56px; height: 56px; }
-.weather-icon--medium { width: 80px; height: 80px; }
-.weather-icon--large { width: 160px; height: 160px; }
+.weather-icon {
+  width: 70px;
+  height: 70px;
+}
 </style>

@@ -11,9 +11,10 @@ const props = defineProps<{
   high: number;
   low: number;
   isCurrentLocation?: boolean;
+  isNight?: boolean;
 }>();
 
-const theme = getWeatherTheme(props.conditionMain);
+const theme = getWeatherTheme(props.conditionMain, props.isNight);
 </script>
 
 <template>
@@ -22,7 +23,7 @@ const theme = getWeatherTheme(props.conditionMain);
       <div>
         <p v-if="isCurrentLocation" class="city-card__eyebrow">My Location</p>
         <h3 class="city-card__name">{{ cityName }}</h3>
-        <p class="city-card__subtitle">{{ subtitle }}</p>
+        <p v-if="subtitle" class="city-card__subtitle">{{ subtitle }}</p>
       </div>
       <TempDisplay :temp="temp" />
     </div>
