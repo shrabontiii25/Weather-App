@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onBeforeUnmount, ref, watch } from 'vue';
 import SearchInput from '../atoms/SearchInput.vue';
-import { fetchCitySuggestions, type CitySuggestion } from '../../services/weatherApi';
+import {
+  fetchCitySuggestions,
+  type CitySuggestion,
+} from '../../services/weatherApi';
 
 const emit = defineEmits<{
   search: [city: string];
@@ -10,53 +13,100 @@ const emit = defineEmits<{
 const query = ref('');
 const validationError = ref('');
 const suggestions = ref<CitySuggestion[]>([]);
+
 let debounceTimer: ReturnType<typeof setTimeout>;
+let requestVersion = 0;
+
+function closeSuggestions() {
+  clearTimeout(debounceTimer);
+  requestVersion += 1;
+  suggestions.value = [];
+}
 
 watch(query, (newValue) => {
   clearTimeout(debounceTimer);
-  if (newValue.trim().length < 3) {
+
+  const trimmedQuery = newValue.trim();
+
+  if (trimmedQuery.length < 3) {
     suggestions.value = [];
     return;
   }
+
+  const currentRequest = ++requestVersion;
+
   debounceTimer = setTimeout(async () => {
-    const results = await fetchCitySuggestions(newValue);
-    suggestions.value = results.filter((city) =>
-      city.name.toLowerCase().startsWith(newValue.trim().toLowerCase())
-    );
+    try {
+      const results = await fetchCitySuggestions(trimmedQuery);
+
+      /*
+       * Ignore results if the user selected a city, cleared the input,
+       * or typed a different search while this request was loading.
+       */
+      if (currentRequest !== requestVersion) {
+        return;
+      }
+
+      suggestions.value = results.filter((city) =>
+        city.name.toLowerCase().startsWith(trimmedQuery.toLowerCase()),
+      );
+    } catch {
+      if (currentRequest === requestVersion) {
+        suggestions.value = [];
+      }
+    }
   }, 300);
 });
 
 function handleSearch() {
   const trimmed = query.value.trim();
+
   if (!trimmed) {
     validationError.value = 'Please enter a city name';
     return;
   }
+
   validationError.value = '';
   emit('search', trimmed);
+
+  closeSuggestions();
   query.value = '';
-  suggestions.value = [];
 }
 
 function selectSuggestion(city: CitySuggestion) {
   emit('search', city.name);
+
+  closeSuggestions();
   query.value = '';
-  suggestions.value = [];
 }
+
+onBeforeUnmount(() => {
+  clearTimeout(debounceTimer);
+});
 </script>
 
 <template>
   <form class="search-bar" @submit.prevent="handleSearch">
     <SearchInput v-model="query" />
-    <p v-if="validationError" class="search-bar__error">{{ validationError }}</p>
+
+    <p v-if="validationError" class="search-bar__error">
+      {{ validationError }}
+    </p>
 
     <ul v-if="suggestions.length" class="search-bar__suggestions">
       <li
         v-for="city in suggestions"
         :key="`${city.name}-${city.lat}-${city.lon}`"
-        @click="selectSuggestion(city)"
       >
-        {{ city.name }}, {{ city.state ? city.state + ', ' : '' }}{{ city.country }}
+        <button
+          type="button"
+          class="search-bar__suggestion-button"
+          @click="selectSuggestion(city)"
+        >
+          {{ city.name }}, {{ city.state ? `${city.state}, ` : '' }}{{
+            city.country
+          }}
+        </button>
       </li>
     </ul>
   </form>
@@ -64,38 +114,52 @@ function selectSuggestion(city: CitySuggestion) {
 
 <style scoped>
 .search-bar {
-  margin-bottom: 1rem;
   position: relative;
+  z-index: 20;
+  flex: 0 0 auto;
+  margin-bottom: 0.65rem;
 }
 
 .search-bar__error {
+  margin: 0.4rem 0 0;
   color: #c0392b;
-  font-size: 0.85rem;
-  margin-top: 0.4rem;
+  font-size: 0.72rem;
 }
 
 .search-bar__suggestions {
-  list-style: none;
-  margin: 0.3rem 0 0;
-  padding: 0;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  overflow: hidden;
   position: absolute;
+  z-index: 30;
+  top: calc(100% + 0.32rem);
+  right: 0;
+  left: 0;
+  max-height: 242px;
+  margin: 0;
+  padding: 0.25rem 0;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid #e3e9f7;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(43, 67, 128, 0.14);
+}
+
+.search-bar__suggestion-button {
+  display: block;
   width: 100%;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-}
-
-.search-bar__suggestions li {
-  padding: 0.6rem 1rem;
+  padding: 0.72rem 1rem;
+  border: 0;
+  background: transparent;
+  color: #31313b;
   cursor: pointer;
-  font-size: 0.9rem;
-  color: #333;
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  text-align: left;
 }
 
-.search-bar__suggestions li:hover {
-  background: #f0f4f8;
+.search-bar__suggestion-button:hover,
+.search-bar__suggestion-button:focus-visible {
+  outline: none;
+  background: #f0f4ff;
 }
 </style>

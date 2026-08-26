@@ -1,16 +1,16 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
+  --text: #5d6476;
+  --text-h: #17233f;
+  --bg: #f4f7ff;
   --border: #e5e4e7;
   --code-bg: #f4f3ec;
-  --accent: #aa3bff;
+  --accent: #3968ef;
   --accent-bg: rgba(170, 59, 255, 0.1);
   --accent-border: rgba(170, 59, 255, 0.5);
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: Inter, ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --display: 'Baloo 2', var(--heading);
   --mono: ui-monospace, Consolas, monospace;
@@ -22,7 +22,7 @@
   --weather-snow: linear-gradient(160deg, #8fc1e8 0%, #3e6b9e 100%);
   --weather-mist: linear-gradient(160deg, #8a9ba8 0%, #4e5c66 100%);
 
-  font: 18px/145% var(--sans);
+  font: 16px/145% var(--sans);
   letter-spacing: 0.18px;
   color: var(--text);
   font-synthesis: none;
@@ -38,10 +38,14 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: #1c1d24;
+  background: radial-gradient(circle at 50% -10%, #d9e4ff 0, #f4f7ff 35%, #e9effd 100%);
   display: flex;
   justify-content: center;
 }
+
+button, input { font: inherit; }
+
+#app { width: min(100%, 430px); min-height: 100vh; }
 
 h1,
 h2 {

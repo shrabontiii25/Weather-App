@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useWeatherStore } from '../../stores/weatherStore';
-import TempDisplay from '../atoms/TempDisplay.vue';
 import WeatherIcon from '../atoms/WeatherIcon.vue';
 import { getWeatherTheme } from '../../utils/weatherTheme';
 
@@ -11,237 +10,469 @@ const store = useWeatherStore();
 
 const cityName = route.params.cityName as string;
 
-const theme = computed(() =>
-  getWeatherTheme(store.selectedCityWeather?.weather[0]?.main)
-);
-
-function loadDetail() {
+onMounted(() => {
   store.loadCityDetail(cityName);
-}
+});
 
-onMounted(loadDetail);
+const weather = computed(() => store.selectedCityWeather);
+
+const isNight = computed(() => {
+  const iconCode = weather.value?.weather[0]?.icon ?? '';
+  return iconCode.endsWith('n');
+});
+
+const conditionMain = computed(() => {
+  return weather.value?.weather[0]?.main ?? 'Clouds';
+});
+
+const theme = computed(() => {
+  return getWeatherTheme(conditionMain.value, isNight.value);
+});
+
+const themeColors = computed(() => {
+  const colors: Record<string, { accent: string; soft: string; row: string }> = {
+    Clear: {
+      accent: '#ff641d',
+      soft: '#fff0df',
+      row: '#ffe2c3',
+    },
+    Clouds: {
+      accent: '#3974e8',
+      soft: '#eaf1ff',
+      row: '#d9e7ff',
+    },
+    Rain: {
+      accent: '#245ca8',
+      soft: '#e8f1fb',
+      row: '#d4e3f4',
+    },
+    Drizzle: {
+      accent: '#3479ae',
+      soft: '#e8f4fb',
+      row: '#d3e8f5',
+    },
+    Thunderstorm: {
+      accent: '#4a338c',
+      soft: '#f0ecff',
+      row: '#e0d8f8',
+    },
+    Snow: {
+      accent: '#4388b6',
+      soft: '#ecf8ff',
+      row: '#d7edfa',
+    },
+    Mist: {
+      accent: '#667a88',
+      soft: '#eef2f4',
+      row: '#dfe7eb',
+    },
+    Fog: {
+      accent: '#667a88',
+      soft: '#eef2f4',
+      row: '#dfe7eb',
+    },
+    Haze: {
+      accent: '#847260',
+      soft: '#f5f1eb',
+      row: '#e8dfd4',
+    },
+  };
+
+  return colors[conditionMain.value] ?? colors.Clouds;
+});
+
+const pageStyle = computed(() => ({
+  background: theme.value.gradient,
+  '--forecast-accent': themeColors.value.accent,
+  '--forecast-soft': themeColors.value.soft,
+  '--forecast-row': themeColors.value.row,
+}));
+
+const heroDate = computed(() => {
+  const timezoneOffset = weather.value?.timezone ?? 0;
+  const cityTime = new Date(Date.now() + timezoneOffset * 1000);
+
+  return cityTime.toLocaleDateString('en-US', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+});
+
+const conditionLabel = computed(() => {
+  const label = weather.value?.weather[0]?.description ?? conditionMain.value;
+  return label.charAt(0).toUpperCase() + label.slice(1);
+});
 
 const hourlyForecast = computed(() => {
-  return store.selectedCityForecast?.list.slice(0, 4) ?? [];
+  return store.selectedCityForecast?.list.slice(0, 6) ?? [];
 });
 
-const dailyForecast = computed(() => {
-  if (!store.selectedCityForecast) return [];
+const weeklyForecast = computed(() => {
   const seen = new Set<string>();
-  const daily = [];
-  for (const entry of store.selectedCityForecast.list) {
-    const day = entry.dt_txt.split(' ')[0];
-    if (!seen.has(day)) {
-      seen.add(day);
-      daily.push(entry);
-    }
-  }
-  return daily.slice(0, 5);
+
+  return (store.selectedCityForecast?.list ?? [])
+    .filter((item) => {
+      const date = item.dt_txt.split(' ')[0];
+
+      if (seen.has(date)) return false;
+
+      seen.add(date);
+      return true;
+    })
+    .slice(0, 5);
 });
 
-function formatFullDate(unixSeconds: number): string {
-  const d = new Date(unixSeconds * 1000);
-  const weekday = d.toLocaleDateString('en-GB', { weekday: 'long' });
-  const day = d.getDate();
-  const month = d.toLocaleDateString('en-GB', { month: 'long' });
-  const year = d.getFullYear();
-  return `${weekday}, ${day} ${month} ${year}`;
+function formatTime(dateText: string) {
+  return new Date(dateText.replace(' ', 'T')).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
 
-function formatTime(dtTxt: string): string {
-  const d = new Date(dtTxt.replace(' ', 'T'));
-  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+function dayLabel(dateText: string) {
+  return new Date(dateText.replace(' ', 'T')).toLocaleDateString('en-US', {
+    weekday: 'long',
+  });
 }
-
-function formatWeekday(dtTxt: string): string {
-  const d = new Date(dtTxt.replace(' ', 'T'));
-  return d.toLocaleDateString('en-US', { weekday: 'long' });
-}
-
-function conditionLabel(main: string): string {
-  const label = getWeatherTheme(main).label;
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
-const lastUpdate = computed(() =>
-  store.selectedCityWeather ? formatTime(new Date(store.selectedCityWeather.dt * 1000).toISOString().replace('T', ' ').slice(0, 19)) : ''
-);
 </script>
 
 <template>
-  <main class="detail-page" :style="{ background: theme.gradient }">
-    <header class="detail-page__topbar">
-      <router-link to="/" class="detail-page__icon-btn" aria-label="Back to city list">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </router-link>
-      <h1 class="detail-page__city" v-if="store.selectedCityWeather">
-        {{ store.selectedCityWeather.name }}, {{ store.selectedCityWeather.sys.country }}
-      </h1>
-      <button class="detail-page__icon-btn" aria-label="Save location" type="button">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M6 3h12v18l-6-4.5L6 21V3z" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </button>
-    </header>
+  <main class="detail-page" :style="pageStyle">
+    <template v-if="weather">
+      <header class="detail-page__topbar">
+        <router-link
+          to="/"
+          class="detail-page__icon-btn"
+          aria-label="Back to weather list"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="21"
+            height="21"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path
+              d="M15 18l-6-6 6-6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </router-link>
 
-    <p v-if="store.selectedCityWeather" class="detail-page__date">
-      {{ formatFullDate(store.selectedCityWeather.dt) }}
-    </p>
+        <p class="detail-page__city">{{ cityName }}</p>
 
-    <div v-if="store.isLoading" class="loading-state">
+        <button
+          type="button"
+          class="detail-page__icon-btn"
+          aria-label="More weather options"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <circle cx="5" cy="12" r="1.2" fill="currentColor" />
+            <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+            <circle cx="19" cy="12" r="1.2" fill="currentColor" />
+          </svg>
+        </button>
+      </header>
+
+      <section class="detail-page__hero">
+        <p class="detail-page__date">{{ heroDate }}</p>
+
+        <WeatherIcon
+          class="detail-page__weather-icon"
+          size="large"
+          :iconCode="weather.weather[0].icon"
+          :description="weather.weather[0].description"
+        />
+
+        <p class="detail-page__temperature">
+          {{ Math.round(weather.main.temp) }}°
+        </p>
+
+        <p class="detail-page__condition">
+          {{ conditionLabel }}
+        </p>
+
+        <p class="detail-page__range">
+          H: {{ Math.round(weather.main.temp_max) }}°
+          <span>·</span>
+          L: {{ Math.round(weather.main.temp_min) }}°
+        </p>
+      </section>
+
+      <section class="detail-page__sheet">
+        <div class="detail-page__sheet-handle"></div>
+
+        <div class="detail-page__sheet-scroll">
+          <div class="detail-page__stats">
+            <span>Humidity <b>{{ weather.main.humidity }}%</b></span>
+            <span>
+              Wind
+              <b>{{ Math.round(weather.wind.speed * 3.6) }} km/h</b>
+            </span>
+          </div>
+
+          <h2 class="detail-page__section-title">Today</h2>
+
+          <div class="forecast-row">
+            <article
+              v-for="(forecast, index) in hourlyForecast"
+              :key="forecast.dt"
+              class="forecast-pill"
+              :class="{ 'forecast-pill--now': index === 0 }"
+            >
+              <span class="forecast-pill__time">
+                {{ index === 0 ? 'Now' : formatTime(forecast.dt_txt) }}
+              </span>
+
+              <WeatherIcon
+                size="small"
+                :iconCode="forecast.weather[0].icon"
+                :description="forecast.weather[0].description"
+              />
+
+              <strong class="forecast-pill__temp">
+                {{ Math.round(forecast.main.temp) }}°
+              </strong>
+            </article>
+          </div>
+
+          <h2 class="detail-page__section-title detail-page__section-title--weekly">
+            5-day forecast
+          </h2>
+
+          <div class="weekly-list">
+            <article
+              v-for="forecast in weeklyForecast"
+              :key="forecast.dt"
+              class="weekly-row"
+            >
+              <WeatherIcon
+                size="small"
+                :iconCode="forecast.weather[0].icon"
+                :description="forecast.weather[0].description"
+              />
+
+              <div class="weekly-row__details">
+                <strong>{{ dayLabel(forecast.dt_txt) }}</strong>
+                <span>{{ forecast.weather[0].description }}</span>
+              </div>
+
+              <b>{{ Math.round(forecast.main.temp) }}°</b>
+
+              <svg
+                class="weekly-row__arrow"
+                viewBox="0 0 24 24"
+                width="15"
+                height="15"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  d="M9 18l6-6-6-6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </article>
+          </div>
+        </div>
+      </section>
+    </template>
+
+    <div v-else-if="store.isLoading" class="loading-state">
       <div class="spinner"></div>
-      <p>Fetching weather...</p>
+      <p>Loading weather...</p>
     </div>
 
-    <p v-if="store.error" class="error-state">{{ store.error }}</p>
-
-    <div v-if="store.selectedCityWeather" class="detail-page__current">
-      <WeatherIcon
-        size="medium"
-        :iconCode="store.selectedCityWeather.weather[0].icon"
-        :description="store.selectedCityWeather.weather[0].description"
-      />
-      <p class="detail-page__temp">
-        <TempDisplay :temp="store.selectedCityWeather.main.temp" />C
-      </p>
-      <p class="detail-page__condition">{{ conditionLabel(store.selectedCityWeather.weather[0].main) }}</p>
-      <button class="detail-page__refresh" type="button" @click="loadDetail">
-        Last Update {{ lastUpdate }}
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 12a9 9 0 11-3-6.7M21 4v5h-5" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </button>
-    </div>
-
-    <section v-if="hourlyForecast.length || dailyForecast.length" class="detail-page__sheet">
-      <h2 v-if="hourlyForecast.length">Today's Forecast</h2>
-      <div v-if="hourlyForecast.length" class="forecast-row">
-        <div v-for="entry in hourlyForecast" :key="entry.dt" class="forecast-pill">
-          <WeatherIcon size="small" :iconCode="entry.weather[0].icon" :description="entry.weather[0].description" />
-          <span class="forecast-pill__temp">{{ Math.round(entry.main.temp) }}°</span>
-          <span class="forecast-pill__time">{{ formatTime(entry.dt_txt) }}</span>
-        </div>
-      </div>
-
-      <h2 v-if="dailyForecast.length">Weekly Forecast</h2>
-      <div v-for="entry in dailyForecast" :key="entry.dt" class="forecast-day-row">
-        <div class="forecast-day-row__icon-wrap" :style="{ background: getWeatherTheme(entry.weather[0].main).gradient }">
-          <WeatherIcon size="small" :iconCode="entry.weather[0].icon" :description="entry.weather[0].description" />
-        </div>
-        <div class="forecast-day-row__info">
-          <span class="forecast-day-row__day">{{ formatWeekday(entry.dt_txt) }}</span>
-          <span class="forecast-day-row__condition">{{ conditionLabel(entry.weather[0].main) }}</span>
-        </div>
-        <span class="forecast-day-row__temp">{{ Math.round(entry.main.temp) }}°C</span>
-        <svg class="forecast-day-row__chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </div>
-    </section>
+    <p v-else-if="store.error" class="error-state">
+      {{ store.error }}
+    </p>
   </main>
 </template>
 
 <style scoped>
 .detail-page {
-  min-height: 100vh;
-  padding: 1.5rem 1.5rem 0;
-  max-width: 400px;
+  width: 375px;
+  height: 667px;
+  max-width: 100vw;
+  max-height: 100dvh;
   margin: 0 auto;
-  color: white;
-  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
   display: flex;
   flex-direction: column;
+  color: #ffffff;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
 }
 
 .detail-page__topbar {
-  display: flex;
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 38px 1fr 38px;
   align-items: center;
-  justify-content: space-between;
+  padding: 17px 18px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.detail-page__city {
+  margin: 0;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 .detail-page__icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  place-items: center;
   width: 36px;
   height: 36px;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  border: none;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
   text-decoration: none;
   cursor: pointer;
 }
 
-.detail-page__city {
-  font-family: var(--display);
-  font-size: 1rem;
-  font-weight: 600;
-  color: white;
-  margin: 0;
+.detail-page__hero {
+  flex: 0 0 294px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 14px;
+  position: relative;
+  z-index: 1;
 }
 
 .detail-page__date {
-  text-align: center;
-  font-size: 0.8rem;
-  opacity: 0.85;
-  margin: 0.5rem 0 0;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 12px;
 }
 
-.detail-page__current {
-  text-align: center;
-  margin: 1rem 0 1.5rem;
+.detail-page__weather-icon {
+  height: 132px;
+  margin: 2px 0 -6px;
+  filter: drop-shadow(0 12px 14px rgba(22, 42, 100, 0.18));
 }
 
-.detail-page__temp {
-  font-family: var(--display);
-  font-size: 2.75rem;
+.detail-page__temperature {
+  margin: 0;
+  font-size: 60px;
   font-weight: 700;
-  margin: 0.25rem 0 0;
+  line-height: 0.95;
+  letter-spacing: -0.075em;
 }
 
 .detail-page__condition {
+  margin: 8px 0 0;
+  font-size: 17px;
   font-weight: 600;
-  margin: 0.1rem 0 0.75rem;
+  text-transform: capitalize;
 }
 
-.detail-page__refresh {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: transparent;
-  border: none;
-  color: white;
-  opacity: 0.85;
-  font-size: 0.75rem;
-  cursor: pointer;
-  padding: 0;
+.detail-page__range {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+}
+
+.detail-page__range span {
+  margin: 0 5px;
+  opacity: 0.7;
 }
 
 .detail-page__sheet {
-  background: white;
-  color: #1c1c22;
-  border-radius: 24px 24px 0 0;
-  padding: 1.5rem 1.5rem 2rem;
-  margin: 0 -1.5rem;
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 25px 25px 0 0;
+  background: #ffffff;
+  color: #242534;
 }
 
-.detail-page__sheet h2 {
-  font-size: 1rem;
-  margin: 0 0 1rem;
-  color: #1c1c22;
+.detail-page__sheet-handle {
+  width: 38px;
+  height: 4px;
+  margin: 10px auto 0;
+  border-radius: 100px;
+  background: #d9dceb;
+}
+
+.detail-page__sheet-scroll {
+  height: calc(100% - 14px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px 16px 28px;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.detail-page__sheet-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.detail-page__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-bottom: 17px;
+}
+
+.detail-page__stats span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 11px;
+  border-radius: 12px;
+  background: var(--forecast-soft);
+  color: #687087;
+  font-size: 11px;
+}
+
+.detail-page__stats b {
+  color: #272938;
+  font-size: 13px;
+}
+
+.detail-page__section-title {
+  margin: 0 0 10px;
+  color: #1c1c28;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.detail-page__section-title--weekly {
+  margin-top: 20px;
 }
 
 .forecast-row {
   display: flex;
-  gap: 0.6rem;
+  gap: 8px;
   overflow-x: auto;
-  margin-bottom: 1.5rem;
+  padding: 1px 0 3px;
   scrollbar-width: none;
-  -ms-overflow-style: none;
 }
 
 .forecast-row::-webkit-scrollbar {
@@ -249,94 +480,110 @@ const lastUpdate = computed(() =>
 }
 
 .forecast-pill {
+  min-width: 51px;
+  height: 84px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  background: #f4f5f9;
-  color: #1c1c22;
-  border-radius: 16px;
-  padding: 0.75rem 0.5rem;
-  min-width: 68px;
+  justify-content: space-between;
+  padding: 8px 5px;
+  border-radius: 11px;
+  background: var(--forecast-soft);
+  color: #282938;
 }
 
-.forecast-pill__temp {
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 1.1rem;
+.forecast-pill--now {
+  background: var(--forecast-accent);
+  color: #ffffff;
 }
 
 .forecast-pill__time {
-  font-size: 0.7rem;
-  color: #8a8a94;
+  font-size: 10px;
+  white-space: nowrap;
 }
 
-.forecast-day-row {
-  display: flex;
+.forecast-pill__temp {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.weekly-list {
+  display: grid;
+  gap: 8px;
+}
+
+.weekly-row {
+  min-height: 55px;
+  display: grid;
+  grid-template-columns: 39px 1fr auto 16px;
   align-items: center;
-  gap: 0.75rem;
-  background: #f4f5fb;
-  border-radius: 16px;
-  padding: 0.6rem 0.75rem;
-  margin-bottom: 0.6rem;
-}
-
-.forecast-day-row__icon-wrap {
-  width: 40px;
-  height: 40px;
+  column-gap: 7px;
+  padding: 6px 10px;
   border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-sizing: border-box;
+  background: var(--forecast-row);
+  color: #282938;
+}
+
+.weekly-row__details {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.weekly-row__details strong {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.weekly-row__details span {
   overflow: hidden;
-  flex-shrink: 0;
+  color: #626b7d;
+  font-size: 10px;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  white-space: nowrap;
 }
 
-.forecast-day-row__icon-wrap :deep(.weather-icon) {
-  width: 28px;
-  height: 28px;
+.weekly-row b {
+  font-size: 13px;
 }
 
-.forecast-day-row__info {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.forecast-day-row__day {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.forecast-day-row__condition {
-  font-size: 0.75rem;
-  color: #8a8a94;
-}
-
-.forecast-day-row__temp {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.forecast-day-row__chevron {
-  color: #b8b8c2;
+.weekly-row__arrow {
+  color: #36415d;
 }
 
 .loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  padding: 2rem 0;
+  gap: 11px;
+  padding-top: 190px;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.loading-state p,
+.error-state {
+  margin: 0;
 }
 
 .spinner {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border-top-color: #ffffff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+.error-state {
+  padding: 70px 24px 0;
+  color: #ffffff;
+  text-align: center;
+  font-size: 13px;
 }
 
 @keyframes spin {
@@ -345,9 +592,10 @@ const lastUpdate = computed(() =>
   }
 }
 
-.error-state {
-  color: #ffd6d6;
-  text-align: center;
-  padding: 1rem;
+@media (min-width: 376px) {
+  .detail-page {
+    border-radius: 24px;
+    box-shadow: 0 18px 50px rgba(41, 48, 86, 0.2);
+  }
 }
 </style>

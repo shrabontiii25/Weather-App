@@ -15,8 +15,20 @@ function isNight(city: CurrentWeather): boolean {
   return city.weather[0].icon.endsWith('n');
 }
 
-function conditionText(city: CurrentWeather): string {
-  return store.cityTrends[city.name] ?? city.weather[0].description;
+function conditionLabel(city: CurrentWeather): string {
+  const description = city.weather[0]?.description ?? city.weather[0]?.main ?? '';
+  return description.charAt(0).toUpperCase() + description.slice(1);
+}
+
+function forecastText(city: CurrentWeather, isCurrentLocation: boolean): string {
+  if (isCurrentLocation) {
+    return 'Your local weather is ready for today.';
+  }
+
+  return (
+    store.cityTrends[city.name] ??
+    `Not as warm tomorrow, with a high of ${Math.round(city.main.temp_max)}°`
+  );
 }
 </script>
 
@@ -30,9 +42,14 @@ function conditionText(city: CurrentWeather): string {
     >
       <CityCard
         :cityName="city.name"
-        :subtitle="city.name === myLocationName ? '' : formatLocalTime(city.dt, city.timezone)"
+        :subtitle="
+          city.name === myLocationName
+            ? ''
+            : formatLocalTime(city.dt, city.timezone)
+        "
         :temp="city.main.temp"
-        :condition="conditionText(city)"
+        :condition="conditionLabel(city)"
+        :forecastText="forecastText(city, city.name === myLocationName)"
         :conditionMain="city.weather[0].main"
         :high="city.main.temp_max"
         :low="city.main.temp_min"
@@ -47,12 +64,13 @@ function conditionText(city: CurrentWeather): string {
 .city-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
 }
 
 .city-list__link {
-  text-decoration: none;
-  color: inherit;
   display: block;
+  color: inherit;
+  text-decoration: none;
 }
 </style>

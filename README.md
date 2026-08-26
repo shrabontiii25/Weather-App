@@ -45,15 +45,15 @@ Data flow: the **API service layer** (`services/weatherApi.ts`) fetches and type
 
 - Chose **Pinia** over Vuex, as it's the modern, officially recommended successor and integrates more naturally with the Composition API.
 - The free OpenWeatherMap tier provides 3-hour interval forecasts rather than a true daily forecast, so the weekly forecast is derived by taking the first entry per unique date from the 5-day list.
-- Given the project's time constraints, I prioritized core functionality (search, city list, detail view, real API integration, state management, routing) over exhaustive accessibility/performance optimization. These are documented below as next steps.
+- Routes are lazy-loaded so that page code is fetched only when the corresponding screen is visited.
 - Used the browser's native **Geolocation API** to detect the user's location and show local weather first in the list, degrading gracefully with an error message if permission is denied or unavailable.
 
 ## Running Tests
 
-No automated test suite is included at this time due to project time constraints. Manual testing was performed for: search validation, duplicate city prevention, navigation between views, and error states (e.g. invalid API key, invalid city name).
+Run the automated unit tests with `npm test`. The suite covers weather-theme mapping, including day, night, and fallback conditions. Manual testing was also performed for search validation, duplicate city prevention, navigation between views, and API error states.
 
 ## Next Steps (given more time)
 
 - Expand automated test coverage (unit tests for the store and API service)
 - Deeper accessibility audit (keyboard navigation, ARIA labels, contrast)
-- Additional performance optimizations (lazy-loaded routes, image optimization)
+- Further image optimization for the supplied weather icon assets
